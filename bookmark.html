@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Manager</title>
+</head>
+<body>
+    <div id="app">
+        <h1>Bookmark Website</h1>
+
+        <div id="bookmark-form">
+            <h2>Add a Bookmark</h2>
+            <form id="add-bookmark-form">
+                <label for="url">Website URL:</label>
+                <input type="url" id="url" required>
+                <label for="title">Website Title:</label>
+                <input type="text" id="title" required>
+                <button type="submit">Add Bookmark</button>
+            </form>
+        </div>
+
+        <div id="bookmarks">
+            <h2>All Bookmarks</h2>
+            <ul id="bookmark-list"></ul>
+        </div>
+    </div>
+
+    <script >
+       document.addEventListener('DOMContentLoaded', function () {
+    const bookmarkList = document.getElementById('bookmark-list');
+    const bookmarkForm = document.getElementById('add-bookmark-form');
+
+    const API_URL = 'https://crudcrud.com/api/1627a46914b84ef7b9e8dd8ed49e3b43/bookmarks';
+    let bookmarks = [];
+
+    function renderBookmarks() {
+        bookmarkList.innerHTML = '';
+        bookmarks.forEach((bookmark, index) => {
+            const li = document.createElement('li');
+            li.textContent = `${bookmark.title} - ${bookmark.url}`;
+            li.addEventListener('click', () => alert(`Visit ${bookmark.title} at ${bookmark.url}`));
+            bookmarkList.appendChild(li);
+        });
+    }
+
+    function fetchBookmarks() {
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                bookmarks = data;
+                renderBookmarks();
+            })
+            .catch(error => console.error('Error fetching bookmarks:', error));
+    }
+
+    function addBookmark(url, title) {
+        fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: title,
+                url: url,
+            }),
+        })
+        .then(response => response.json())
+        .then(newBookmark => {
+            bookmarks.push(newBookmark);
+            renderBookmarks();
+        })
+        .catch(error => console.error('Error adding bookmark:', error));
+    }
+
+    function deleteBookmark(id, index) {
+        fetch(`${API_URL}/${id}`, {
+            method: 'DELETE',
+        })
+        .then(() => {
+            bookmarks.splice(index, 1);
+            renderBookmarks();
+        })
+        .catch(error => console.error('Error deleting bookmark:', error));
+    }
+
+    bookmarkForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const url = document.getElementById('url').value;
+        const title = document.getElementById('title').value;
+
+        if (url && title) {
+            addBookmark(url, title);
+            document.getElementById('url').value = '';
+            document.getElementById('title').value = '';
+        }
+    });
+
+    // Initial fetch of bookmarks
+    fetchBookmarks();
+});
+
+
+    </script>
+</body>
+</html>
